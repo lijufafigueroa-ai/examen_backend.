@@ -33,7 +33,7 @@ La tabla original contiene datos mezclados de Libros, Autores, Editoriales, Cate
 
 ---
 
-## Parte 2: Modelo Entidad-Relación (E-R) y Esquema UML
+## Parte 2: Modelo Entidad-Relación (E-R)
 
 ### 2.1 Cardinalidades y Reglas de Negocio
 * **AUTOR - LIBRO:** Muchos a Muchos (N:M). Un autor escribe varios libros; un libro puede tener varios autores (se resuelve con la tabla intermedia `LIBRO_AUTOR`).
@@ -44,92 +44,74 @@ La tabla original contiene datos mezclados de Libros, Autores, Editoriales, Cate
 * **PEDIDO - TRANSACCION:** Uno a Muchos (1:N). Un pedido genera registros de pago.
 * **METODO_PAGO - TRANSACCION:** Uno a Muchos (1:N). Un método de pago procesa múltiples transacciones.
 
----
+### 2.2 Diagrama Entidad-Relación Gráfico (Mermaid)
 
-### 2.2 Diagrama Entidad-Relación (Hecho a Mano)
+```mermaid
+erDiagram
+    AUTOR {
+        int id_autor PK
+        string nombre
+        string apellido
+        date fecha_nacimiento
+    }
+    EDITORIAL {
+        int id_editorial PK
+        string nombre_editorial
+    }
+    CATEGORIA {
+        int id_categoria PK
+        string nombre_categoria
+    }
+    LIBRO {
+        string isbn PK
+        string titulo
+        decimal precio
+        int stock
+        int id_editorial FK
+        int id_categoria FK
+    }
+    LIBRO_AUTOR {
+        string isbn PK, FK
+        int id_autor PK, FK
+    }
+    CLIENTE {
+        int id_cliente PK
+        string nombre
+        string apellido
+        string correo
+        string direccion
+        string telefono
+    }
+    PEDIDO {
+        int id_pedido PK
+        datetime fecha_pedido
+        decimal monto_total
+        int id_cliente FK
+    }
+    DETALLE_PEDIDO {
+        int id_pedido PK, FK
+        string isbn PK, FK
+        int cantidad
+        decimal precio_unitario
+    }
+    TRANSACCION {
+        int id_transaccion PK
+        decimal monto_pago
+        datetime fecha_transaccion
+        int id_pedido FK
+        int id_metodo_pago FK
+    }
+    METODO_PAGO {
+        int id_metodo_pago PK
+        string nombre_metodo
+    }
 
-> **Nota:** A continuación se adjuntan las fotografías/escaneos del Diagrama Entidad-Relación elaborado manualmente.
-
-![Diagrama Entidad Relación a Mano](./diagrama_er_mano.png)
-
-*(Si tienes varias fotos, puedes agregar otra línea como esta:)*
-*![Diagrama Entidad Relación Parte 2](./diagrama_er_mano_2.png)*
-
----
-
-### 2.3 Diagrama de Estructura de Tablas (Esquema UML E-R)
-
-```text
-+-----------------------------------+
-|               AUTOR               |
-+-----------------------------------+
-| id_autor: INT (PK)                |
-| nombre: VARCHAR(50)               |
-| apellido: VARCHAR(50)             |
-| fecha_nacimiento: DATE            |
-+-----------------------------------+
-                  | 1
-                  |
-                  | N
-+-----------------------------------+
-|            LIBRO_AUTOR            |
-+-----------------------------------+
-| isbn: VARCHAR(20) (PK, FK)        |
-| id_autor: INT (PK, FK)            |
-+-----------------------------------+
-                  | N
-                  |
-                  | 1
-+-----------------------------------+         +-----------------------------------+
-|               LIBRO               | N     1 |             EDITORIAL             |
-+-----------------------------------+---------+-----------------------------------+
-| isbn: VARCHAR(20) (PK)            |         | id_editorial: INT (PK)            |
-| titulo: VARCHAR(150)              |         | nombre_editorial: VARCHAR(100)    |
-| precio: DECIMAL(10,2)             |         +-----------------------------------+
-| stock: INT                        |
-| id_editorial: INT (FK)            | N     1 +-----------------------------------+
-| id_categoria: INT (FK)            |---------|             CATEGORIA             |
-+-----------------------------------+         +-----------------------------------+
-                  | 1                         | id_categoria: INT (PK)            |
-                  |                           | nombre_categoria: VARCHAR(50)     |
-                  | N                         +-----------------------------------+
-+-----------------------------------+
-|          DETALLE_PEDIDO           |
-+-----------------------------------+
-| id_pedido: INT (PK, FK)           |
-| isbn: VARCHAR(20) (PK, FK)        |
-| cantidad: INT                     |
-| precio_unitario: DECIMAL(10,2)    |
-+-----------------------------------+
-                  | N
-                  |
-                  | 1
-+-----------------------------------+         +-----------------------------------+
-|              PEDIDO               | N     1 |              CLIENTE              |
-+-----------------------------------+---------+-----------------------------------+
-| id_pedido: INT (PK)               |         | id_cliente: INT (PK)              |
-| fecha_pedido: DATETIME            |         | nombre: VARCHAR(50)               |
-| monto_total: DECIMAL(10,2)        |         | apellido: VARCHAR(50)             |
-| id_cliente: INT (FK)              |         | correo: VARCHAR(100)              |
-+-----------------------------------+         | direccion: VARCHAR(150)           |
-                  | 1                         | telefono: VARCHAR(20)             |
-                  |                           +-----------------------------------+
-                  | N
-+-----------------------------------+
-|            TRANSACCION            |
-+-----------------------------------+
-| id_transaccion: INT (PK)          |
-| monto_pago: DECIMAL(10,2)         |
-| fecha_transaccion: DATETIME       |
-| id_pedido: INT (FK)               |
-| id_metodo_pago: INT (FK)          |
-+-----------------------------------+
-                  | N
-                  |
-                  | 1
-+-----------------------------------+
-|            METODO_PAGO            |
-+-----------------------------------+
-| id_metodo_pago: INT (PK)          |
-| nombre_metodo: VARCHAR(50)        |
-+-----------------------------------+
+    AUTOR ||--o{ LIBRO_AUTOR : "escribe"
+    LIBRO ||--o{ LIBRO_AUTOR : "pertenece"
+    EDITORIAL ||--o{ LIBRO : "publica"
+    CATEGORIA ||--o{ LIBRO : "clasifica"
+    CLIENTE ||--o{ PEDIDO : "realiza"
+    PEDIDO ||--o{ DETALLE_PEDIDO : "contiene"
+    LIBRO ||--o{ DETALLE_PEDIDO : "incluye"
+    PEDIDO ||--o{ TRANSACCION : "genera"
+    METODO_PAGO ||--o{ TRANSACCION : "procesa"
